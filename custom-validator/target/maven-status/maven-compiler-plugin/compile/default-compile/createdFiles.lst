@@ -1,0 +1,6 @@
+com/validator/demo/validator/model/Person.class
+com/validator/demo/validator/minvalidator/AbstractCustomMinValidator.class
+com/validator/demo/validator/minvalidator/CustomMin.class
+com/validator/demo/Main.class
+com/validator/demo/validator/minvalidator/BigDecimalCustomMinValidator.class
+com/validator/demo/validator/minvalidator/CustomMin$List.class
