@@ -2,16 +2,14 @@ package com.specification.demo.service.search;
 
 import com.specification.demo.error.ErrorType;
 import com.specification.demo.exception.CustomServiceException;
-import com.specification.demo.payload.search.ConditionRequest;
-import com.specification.demo.payload.search.FilterRequest;
-import com.specification.demo.payload.search.SearchRequest;
-import com.specification.demo.payload.search.SortRequest;
+import com.specification.demo.payload.search.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
@@ -31,15 +29,28 @@ public class SearchSpecification<T> implements Specification<T> {
     @Override
     public Predicate toPredicate(@NonNull Root<T> root, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder cb) {
         try {
-            Predicate predicate = null;
-
+            List<Predicate> filterPredicates = new ArrayList<>();
             for (FilterRequest filter : this.request.getFilters()) {
+                Predicate conditionPredicate = null;
+
                 for (ConditionRequest condition : filter.getConditions()) {
                     log.info("Filter: {} {} {}", filter.getKey(), condition.getFilterType().toString(), condition.getValue());
-                    predicate = condition.getFilterType().build(root, cb, filter, predicate, condition, searchExpressionType, searchRoleType);
-                    if (predicate == null) {
+                    conditionPredicate = condition.getFilterType().build(root, cb, filter, conditionPredicate, condition, searchExpressionType, searchRoleType);
+                    if (conditionPredicate == null) {
                         throw new CustomServiceException(ErrorType.FILTER_TYPE_NOT_SUITABLE_ERROR);
                     }
+                }
+                filterPredicates.add(conditionPredicate);
+            }
+
+            Predicate predicate = null;
+            if (!CollectionUtils.isEmpty(filterPredicates)) {
+                predicate = filterPredicates.get(0);
+                for (int i = 1 ; i < filterPredicates.size() -1 ; i++) {
+
+                    predicate = Operator.OR.equals(request.getOperator())
+                            ? cb.or(filterPredicates.get(i), predicate)
+                            : cb.and(filterPredicates.get(i), predicate);
                 }
             }
 
