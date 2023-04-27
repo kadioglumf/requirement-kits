@@ -5,9 +5,12 @@ import com.kafka.producer.service.model.TestEventModel;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @SpringBootApplication
-public class KafkaProducerApplication implements CommandLineRunner {
+@EnableScheduling
+public class KafkaProducerApplication {
 
     private final KafkaProducerService kafkaProducerService;
 
@@ -19,8 +22,8 @@ public class KafkaProducerApplication implements CommandLineRunner {
         SpringApplication.run(KafkaProducerApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) throws Exception {
+    @Scheduled(cron = "*/10 * * * * *")
+    public void run() {
         kafkaProducerService.testEvent(new TestEventModel("test message from kafka producer"));
     }
 }
