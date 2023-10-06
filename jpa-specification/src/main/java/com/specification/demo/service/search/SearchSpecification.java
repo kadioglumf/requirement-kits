@@ -60,6 +60,9 @@ public class SearchSpecification<T> implements Specification<T> {
             }
 
             query.orderBy(orders);
+            if (predicate != null) {
+                query.distinct(true);
+            }
             return predicate;
         } catch (CustomServiceException ex) {
             throw ex;
