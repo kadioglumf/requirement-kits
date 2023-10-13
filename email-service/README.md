@@ -10,7 +10,7 @@ docker run -d --name redis-container-test -p 6379:6379 redis-test
 host: localhost
 port: 6379
 database alias: CUSTOM_NAME
-password: a4rT44Rce32w87htRft56
+password: Test123
 ```
 
 
