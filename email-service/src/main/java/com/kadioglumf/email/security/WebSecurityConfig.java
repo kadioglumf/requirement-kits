@@ -23,9 +23,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthEntryPointJwt unauthorizedHandler;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Bean
@@ -51,6 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
                 .antMatchers("/api/email/**").permitAll()
+                .antMatchers("/api/auth/**").permitAll()
                 .antMatchers(
                         "/",
                         "/v2/api-docs",
