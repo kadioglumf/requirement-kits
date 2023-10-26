@@ -92,9 +92,13 @@ public class EmailTemplateUtil {
 
     public static List<String> allPlaceHolders(String template) {
         List<String> placeHolders = new ArrayList<>();
-        placeHolders.addAll(valuePlaceHolders(template));
-        placeHolders.addAll(conditionPlaceHolders(template));
-        placeHolders.addAll(listPlaceHolders(template));
+
+        Pattern patternNormalValue = Pattern.compile(regexNormalValue + "|" + regexList + "|" + regexCondition);
+        Matcher matcherNormalValue = patternNormalValue.matcher(template);
+
+        while (matcherNormalValue.find()) {
+            placeHolders.add(matcherNormalValue.group(1));
+        }
 
         return placeHolders;
     }
@@ -107,30 +111,6 @@ public class EmailTemplateUtil {
 
         while (matcherNormalValue.find()) {
             placeHolders.add(matcherNormalValue.group(1));
-        }
-        return placeHolders;
-    }
-
-    public static List<String> conditionPlaceHolders(String template) {
-        List<String> placeHolders = new ArrayList<>();
-
-        Pattern patternCondition = Pattern.compile(regexCondition);
-        Matcher matcherCondition = patternCondition.matcher(template);
-
-        while (matcherCondition.find()) {
-            placeHolders.add(matcherCondition.group(1));
-        }
-        return placeHolders;
-    }
-
-    public static List<String> listPlaceHolders(String template) {
-        List<String> placeHolders = new ArrayList<>();
-
-        Pattern patternList = Pattern.compile(regexList);
-        Matcher matcherList = patternList.matcher(template);
-
-        while (matcherList.find()) {
-            placeHolders.add(matcherList.group(1));
         }
         return placeHolders;
     }
