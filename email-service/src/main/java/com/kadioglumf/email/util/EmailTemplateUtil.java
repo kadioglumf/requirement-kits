@@ -16,7 +16,11 @@ public class EmailTemplateUtil {
     private static final String regexCondition = "\\$\\(([^\\)]+)\\)"; // Koşul ifadesi: $(...)
     private static final String regexList = "\\$\\[([^\\]]+)\\]"; // Liste ifadesi: $[...]
     private static final String regexNormalValue = "\\$\\{([^\\}]+)\\}"; // Normal değer ifadesi: ${...}
-    //private static final String regexCommonValue = "\\$\\{\\{([^}]*)\\}\\}"; // Normal değer ifadesi: ${...}
+
+    private static final Pattern patternNormalValue = Pattern.compile(regexNormalValue);
+    private static final Pattern allValues = Pattern.compile(regexNormalValue + "|" + regexList + "|" + regexCondition);
+
+
 
     public static synchronized String concatTemplateParts(String header,
                                                       String content,
@@ -30,13 +34,10 @@ public class EmailTemplateUtil {
         return resolveTemplate(content.getTemplate(), content.getVariables());
     }
 
-    private static synchronized String resolveTemplate(String template, Map<String, Object> templateParameters) {
+    private static String resolveTemplate(String template, Map<String, Object> templateParameters) {
         List<String> placeHolders = allPlaceHolders(template);
         if (CollectionUtils.isEmpty(placeHolders))
         {
-            if (!CollectionUtils.isEmpty(templateParameters)) {
-                //throw ex;
-            }
             return template;
         }
         for (var parameter : templateParameters.entrySet()) {
@@ -53,7 +54,7 @@ public class EmailTemplateUtil {
                 int conditionValueEndIndex = template.indexOf(endPlaceHolder);
 
                 if (conditionValueBeginIndex == -1 || conditionValueEndIndex == -1) {
-                    //TODO throw ex
+                    continue;
                 }
                 if ((Boolean) parameterValue) {
                     template = template.replace(beginPlaceHolder, "")
@@ -73,7 +74,7 @@ public class EmailTemplateUtil {
                 int listValueEndIndex = template.indexOf(endPlaceHolder);
 
                 if (listValueBeginIndex == -1 || listValueEndIndex == -1) {
-                    //TODO throw ex
+                    continue;
                 }
 
                 String listContent = template.substring(listValueBeginIndex + placeHolder.length(), listValueEndIndex);
@@ -93,11 +94,10 @@ public class EmailTemplateUtil {
     public static List<String> allPlaceHolders(String template) {
         List<String> placeHolders = new ArrayList<>();
 
-        Pattern patternNormalValue = Pattern.compile(regexNormalValue + "|" + regexList + "|" + regexCondition);
-        Matcher matcherNormalValue = patternNormalValue.matcher(template);
+        Matcher matcherAllValues = allValues.matcher(template);
 
-        while (matcherNormalValue.find()) {
-            placeHolders.add(matcherNormalValue.group(1));
+        while (matcherAllValues.find()) {
+            placeHolders.add(matcherAllValues.group(1));
         }
 
         return placeHolders;
@@ -106,7 +106,6 @@ public class EmailTemplateUtil {
     public static List<String> valuePlaceHolders(String template) {
         List<String> placeHolders = new ArrayList<>();
 
-        Pattern patternNormalValue = Pattern.compile(regexNormalValue);
         Matcher matcherNormalValue = patternNormalValue.matcher(template);
 
         while (matcherNormalValue.find()) {
