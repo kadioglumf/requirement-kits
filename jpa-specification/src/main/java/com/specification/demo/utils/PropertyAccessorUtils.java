@@ -1,4 +1,4 @@
-package com.specification.demo.util;
+package com.specification.demo.utils;
 
 import java.util.function.Supplier;
 

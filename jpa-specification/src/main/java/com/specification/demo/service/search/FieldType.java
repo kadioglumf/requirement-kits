@@ -2,7 +2,7 @@ package com.specification.demo.service.search;
 
 import com.specification.demo.exception.CustomServiceException;
 import com.specification.demo.payload.response.ErrorType;
-import com.specification.demo.util.DateUtils;
+import com.specification.demo.utils.DateUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public enum FieldType {

@@ -12,7 +12,6 @@ public class ExpressionKeyConstants {
   public static final String TRANSPORTATION_REQUEST_ID = "transportationRequestId";
   public static final String NUMBER_OF_SALES = "numberOfSales";
   public static final String IS_APPROVED = "isApproved";
-  public static final String ORDER_ID = "orderId";
   public static final String ORDERS = "orders";
 
   public static List<String> getTransportationAdminOrModKeys() {

@@ -2,7 +2,7 @@ package com.specification.demo.service.search;
 
 import com.specification.demo.exception.CustomServiceException;
 import com.specification.demo.payload.response.ErrorType;
-import com.specification.demo.util.PropertyAccessorUtils;
+import com.specification.demo.utils.PropertyAccessorUtils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;

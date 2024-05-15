@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @JsonNaming(value = PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class ConditionRequest implements Serializable {
 
+  @NotNull private Operator operator;
   @NotBlank private String key;
   @NotNull private FieldType fieldType;
   @NotNull private FilterType filterType;

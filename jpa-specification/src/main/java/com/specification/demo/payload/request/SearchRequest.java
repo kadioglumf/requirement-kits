@@ -25,8 +25,6 @@ public class SearchRequest implements Serializable {
 
   private static final long serialVersionUID = 8514625832019794838L;
 
-  private Operator operator;
-
   private List<FilterRequest> filters;
 
   private List<SortRequest> sorts;

@@ -8,20 +8,10 @@ import java.util.List;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class GetTransportationRequestExpression extends BaseSearchExpression {
-
-  private static class SingletonHelper {
-    private static final GetTransportationRequestExpression INSTANCE =
-        new GetTransportationRequestExpression();
-  }
-
-  public static GetTransportationRequestExpression getInstance() {
-    return GetTransportationRequestExpression.SingletonHelper.INSTANCE;
-  }
+@Component
+public class TransportationRequestExpression extends BaseSearchExpression {
 
   private final HashMap<RoleType, List<String>> WHITE_LIST_PARAMETERS =
       new HashMap<>() {
@@ -45,7 +35,8 @@ public class GetTransportationRequestExpression extends BaseSearchExpression {
       case ExpressionKeyConstants.IS_APPROVED:
         return root.get(key);
       case ExpressionKeyConstants.USER_ID:
-        joinInfos.add(JoinInfo.builder().key(ExpressionKeyConstants.ORDERS).build());
+        joinInfos.add(
+            JoinInfo.builder().key(ExpressionKeyConstants.ORDERS).joinType(JoinType.LEFT).build());
         return findJoinByKeys(root, joinInfos).get(key);
       case ExpressionKeyConstants.ORDERS:
         joinInfos.add(

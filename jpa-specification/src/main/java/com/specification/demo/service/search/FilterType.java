@@ -3,8 +3,6 @@ package com.specification.demo.service.search;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.specification.demo.exception.CustomServiceException;
 import com.specification.demo.payload.request.ConditionRequest;
-import com.specification.demo.payload.request.FilterRequest;
-import com.specification.demo.payload.request.Operator;
 import com.specification.demo.payload.response.ErrorType;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -15,30 +13,23 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.springframework.util.CollectionUtils;
 
 public enum FilterType {
   EQUAL {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
 
       Object value =
           condition.getFieldType().parse(validateValueAndReturn(condition.getValue()).toString());
+
       Expression<?> key = searchExpression.getExpression(root, condition.getKey(), searchRoleType);
+
       value = convertToEnumIfEnum(value, key);
-      if (predicate == null) {
-        return cb.equal(key, value);
-      }
-      if (Operator.OR.equals(request.getOperator())) {
-        return cb.or(cb.equal(key, value), predicate);
-      }
-      return cb.and(cb.equal(key, value), predicate);
+      return cb.equal(key, value);
     }
   },
 
@@ -46,8 +37,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -56,13 +45,7 @@ public enum FilterType {
           condition.getFieldType().parse(validateValueAndReturn(condition.getValue()).toString());
       Expression<?> key = searchExpression.getExpression(root, condition.getKey(), searchRoleType);
       value = convertToEnumIfEnum(value, key);
-      if (predicate == null) {
-        return cb.notEqual(key, value);
-      }
-      if (Operator.OR.equals(request.getOperator())) {
-        return cb.or(cb.notEqual(key, value), predicate);
-      }
-      return cb.and(cb.notEqual(key, value), predicate);
+      return cb.notEqual(key, value);
     }
   },
 
@@ -70,8 +53,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -81,13 +62,7 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.like(cb.upper(key), "%" + value + "%");
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.like(cb.upper(key), "%" + value + "%"), predicate);
-        }
-        return cb.and(cb.like(cb.upper(key), "%" + value + "%"), predicate);
+        return cb.like(cb.upper(key), "%" + value + "%");
       }
       return null;
     }
@@ -97,8 +72,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -108,13 +81,7 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.like(cb.upper(key), "%" + value);
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.like(cb.upper(key), "%" + value), predicate);
-        }
-        return cb.and(cb.like(cb.upper(key), "%" + value), predicate);
+        return cb.like(cb.upper(key), "%" + value);
       }
       return null;
     }
@@ -124,8 +91,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -135,13 +100,7 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.like(cb.upper(key), value + "%");
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.like(cb.upper(key), value + "%"), predicate);
-        }
-        return cb.and(cb.like(cb.upper(key), value + "%"), predicate);
+        return cb.like(cb.upper(key), value + "%");
       }
       return null;
     }
@@ -151,8 +110,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -167,13 +124,7 @@ public enum FilterType {
       for (Object value : values) {
         inClause.value(value);
       }
-      if (predicate == null) {
-        return inClause;
-      }
-      if (Operator.OR.equals(request.getOperator())) {
-        return cb.or(inClause, predicate);
-      }
-      return cb.and(inClause, predicate);
+      return inClause;
     }
   },
 
@@ -181,8 +132,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -194,13 +143,7 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.greaterThan(cb.upper(key), value.toString());
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.greaterThan(cb.upper(key), value.toString()), predicate);
-        }
-        return cb.and(cb.greaterThan(cb.upper(key), value.toString()), predicate);
+        return cb.greaterThan(cb.upper(key), value.toString());
       } else if (FieldType.DATE.equals(condition.getFieldType())) {
         if (value instanceof LocalDateTime) {
           LocalDateTime startDate = (LocalDateTime) value;
@@ -208,39 +151,21 @@ public enum FilterType {
               (Expression<LocalDateTime>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
 
-          if (predicate == null) {
-            return cb.and(cb.greaterThan(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.greaterThan(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.greaterThan(key, startDate), predicate));
+          return cb.and(cb.greaterThan(key, startDate));
         } else if (value instanceof LocalDate) {
           LocalDate startDate = (LocalDate) value;
           Expression<LocalDate> key =
               (Expression<LocalDate>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
 
-          if (predicate == null) {
-            return cb.and(cb.greaterThan(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.greaterThan(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.greaterThan(key, startDate), predicate));
+          return cb.and(cb.greaterThan(key, startDate));
         }
       } else if (FieldType.NUMBER.equals(condition.getFieldType())) {
         Number numberValue = (Number) value;
         Expression<Number> key =
             (Expression<Number>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.gt(key, numberValue);
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.gt(key, numberValue), predicate);
-        }
-        return cb.and(cb.gt(key, numberValue), predicate);
+        return cb.gt(key, numberValue);
       }
       return null;
     }
@@ -250,8 +175,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -263,38 +186,20 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.greaterThanOrEqualTo(cb.upper(key), value.toString());
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.greaterThanOrEqualTo(cb.upper(key), value.toString()), predicate);
-        }
-        return cb.and(cb.greaterThanOrEqualTo(cb.upper(key), value.toString()), predicate);
+        return cb.greaterThanOrEqualTo(cb.upper(key), value.toString());
       } else if (FieldType.DATE.equals(condition.getFieldType())) {
         if (value instanceof LocalDateTime) {
           LocalDateTime startDate = (LocalDateTime) value;
           Expression<LocalDateTime> key =
               (Expression<LocalDateTime>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.greaterThanOrEqualTo(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.greaterThanOrEqualTo(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.greaterThanOrEqualTo(key, startDate), predicate));
+          return cb.and(cb.greaterThanOrEqualTo(key, startDate));
         } else if (value instanceof LocalDate) {
           LocalDate startDate = (LocalDate) value;
           Expression<LocalDate> key =
               (Expression<LocalDate>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.greaterThanOrEqualTo(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.greaterThanOrEqualTo(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.greaterThanOrEqualTo(key, startDate), predicate));
+          return cb.and(cb.greaterThanOrEqualTo(key, startDate));
         }
 
       } else if (FieldType.NUMBER.equals(condition.getFieldType())) {
@@ -302,13 +207,7 @@ public enum FilterType {
         Expression<Number> key =
             (Expression<Number>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.ge(key, numberValue);
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.ge(key, numberValue), predicate);
-        }
-        return cb.and(cb.ge(key, numberValue), predicate);
+        return cb.ge(key, numberValue);
       }
       return null;
     }
@@ -318,8 +217,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -331,51 +228,27 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.lessThan(cb.upper(key), value.toString());
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.lessThan(cb.upper(key), value.toString()), predicate);
-        }
-        return cb.and(cb.lessThan(cb.upper(key), value.toString()), predicate);
+        return cb.lessThan(cb.upper(key), value.toString());
       } else if (FieldType.DATE.equals(condition.getFieldType())) {
         if (value instanceof LocalDateTime) {
           LocalDateTime startDate = (LocalDateTime) value;
           Expression<LocalDateTime> key =
               (Expression<LocalDateTime>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.lessThan(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.lessThan(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.lessThan(key, startDate), predicate));
+          return cb.and(cb.lessThan(key, startDate));
         } else if (value instanceof LocalDate) {
           LocalDate startDate = (LocalDate) value;
           Expression<LocalDate> key =
               (Expression<LocalDate>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.lessThan(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.lessThan(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.lessThan(key, startDate), predicate));
+          return cb.and(cb.lessThan(key, startDate));
         }
       } else if (FieldType.NUMBER.equals(condition.getFieldType())) {
         Number numberValue = (Number) value;
         Expression<Number> key =
             (Expression<Number>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.lt(key, numberValue);
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.lt(key, numberValue), predicate);
-        }
-        return cb.and(cb.lt(key, numberValue), predicate);
+        return cb.lt(key, numberValue);
       }
       return null;
     }
@@ -385,8 +258,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -398,51 +269,27 @@ public enum FilterType {
         Expression<String> key =
             (Expression<String>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.lessThanOrEqualTo(cb.upper(key), value.toString());
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.lessThanOrEqualTo(cb.upper(key), value.toString()), predicate);
-        }
-        return cb.and(cb.lessThanOrEqualTo(cb.upper(key), value.toString()), predicate);
+        return cb.lessThanOrEqualTo(cb.upper(key), value.toString());
       } else if (FieldType.DATE.equals(condition.getFieldType())) {
         if (value instanceof LocalDateTime) {
           LocalDateTime startDate = (LocalDateTime) value;
           Expression<LocalDateTime> key =
               (Expression<LocalDateTime>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.lessThanOrEqualTo(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.lessThanOrEqualTo(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.lessThanOrEqualTo(key, startDate), predicate));
+          return cb.and(cb.lessThanOrEqualTo(key, startDate));
         } else if (value instanceof LocalDate) {
           LocalDate startDate = (LocalDate) value;
           Expression<LocalDate> key =
               (Expression<LocalDate>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(cb.lessThanOrEqualTo(key, startDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(cb.and(cb.lessThanOrEqualTo(key, startDate), predicate));
-          }
-          return cb.and(cb.and(cb.lessThanOrEqualTo(key, startDate), predicate));
+          return cb.and(cb.lessThanOrEqualTo(key, startDate));
         }
       } else if (FieldType.NUMBER.equals(condition.getFieldType())) {
         Number numberValue = (Number) value;
         Expression<Number> key =
             (Expression<Number>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.le(key, numberValue);
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.le(key, numberValue), predicate);
-        }
-        return cb.and(cb.le(key, numberValue), predicate);
+        return cb.le(key, numberValue);
       }
       return null;
     }
@@ -452,8 +299,6 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
@@ -470,44 +315,16 @@ public enum FilterType {
           Expression<LocalDateTime> key =
               (Expression<LocalDateTime>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(
-                cb.greaterThanOrEqualTo(key, startDate), cb.lessThanOrEqualTo(key, endDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(
-                cb.and(
-                    cb.greaterThanOrEqualTo(key, startDate),
-                    cb.lessThanOrEqualTo(key, endDate),
-                    predicate));
-          }
           return cb.and(
-              cb.and(
-                  cb.greaterThanOrEqualTo(key, startDate),
-                  cb.lessThanOrEqualTo(key, endDate),
-                  predicate));
+              cb.greaterThanOrEqualTo(key, startDate), cb.lessThanOrEqualTo(key, endDate));
         } else if (value instanceof LocalDate) {
           LocalDate startDate = (LocalDate) value;
           LocalDate endDate = (LocalDate) valueTo;
           Expression<LocalDate> key =
               (Expression<LocalDate>)
                   searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-          if (predicate == null) {
-            return cb.and(
-                cb.greaterThanOrEqualTo(key, startDate), cb.lessThanOrEqualTo(key, endDate));
-          }
-          if (Operator.OR.equals(request.getOperator())) {
-            return cb.or(
-                cb.and(
-                    cb.greaterThanOrEqualTo(key, startDate),
-                    cb.lessThanOrEqualTo(key, endDate),
-                    predicate));
-          }
           return cb.and(
-              cb.and(
-                  cb.greaterThanOrEqualTo(key, startDate),
-                  cb.lessThanOrEqualTo(key, endDate),
-                  predicate));
+              cb.greaterThanOrEqualTo(key, startDate), cb.lessThanOrEqualTo(key, endDate));
         }
 
       } else if (FieldType.NUMBER.equals(condition.getFieldType())) {
@@ -516,13 +333,7 @@ public enum FilterType {
         Expression<Number> key =
             (Expression<Number>)
                 searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-        if (predicate == null) {
-          return cb.and(cb.ge(key, start), cb.le(key, end));
-        }
-        if (Operator.OR.equals(request.getOperator())) {
-          return cb.or(cb.and(cb.ge(key, start), cb.le(key, end)), predicate);
-        }
-        return cb.and(cb.and(cb.ge(key, start), cb.le(key, end)), predicate);
+        return cb.and(cb.ge(key, start), cb.le(key, end));
       }
       return null;
     }
@@ -532,20 +343,12 @@ public enum FilterType {
     public <T> Predicate build(
         Root<T> root,
         CriteriaBuilder cb,
-        FilterRequest request,
-        Predicate predicate,
         ConditionRequest condition,
         BaseSearchExpression searchExpression,
         RoleType searchRoleType) {
 
       Expression<?> key = searchExpression.getExpression(root, condition.getKey(), searchRoleType);
-      if (predicate == null) {
-        return cb.isNull(key);
-      }
-      if (Operator.OR.equals(request.getOperator())) {
-        return cb.or(cb.isNull(key), predicate);
-      }
-      return cb.and(cb.isNull(key), predicate);
+      return cb.isNull(key);
     }
   };
 
@@ -582,29 +385,18 @@ public enum FilterType {
   }
 
   public List<Object> convertToEnumIfEnum(List<Object> values, Expression<?> expression) {
-    List<Object> enums = new ArrayList<>();
+    List<Object> list = new ArrayList<>();
 
     for (Object value : values) {
-      if (expression.getJavaType().getEnumConstants() != null) {
-        for (Object key : expression.getJavaType().getEnumConstants()) {
-          if (value.equals(key.toString())) {
-            enums.add(key);
-          }
-        }
-      }
-    }
-    if (!CollectionUtils.isEmpty(enums)) {
-      return enums;
+      list.add(convertToEnumIfEnum(value, expression));
     }
 
-    return values;
+    return list;
   }
 
   public abstract <T> Predicate build(
       Root<T> root,
       CriteriaBuilder cb,
-      FilterRequest request,
-      Predicate predicate,
       ConditionRequest condition,
       BaseSearchExpression searchExpression,
       RoleType searchRoleType);

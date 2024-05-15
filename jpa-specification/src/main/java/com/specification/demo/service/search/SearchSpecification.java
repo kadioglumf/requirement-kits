@@ -37,43 +37,55 @@ public class SearchSpecification<T> implements Specification<T> {
   public Predicate toPredicate(
       @NonNull Root<T> root, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder cb) {
     try {
-      List<Predicate> filterPredicates = new ArrayList<>();
+      List<PredicateCondition> filterPredicates = new ArrayList<>();
       for (FilterRequest filter : this.request.getFilters()) {
-        Predicate conditionPredicate = null;
 
+        List<PredicateCondition> conditionPredicates = new ArrayList<>();
         for (ConditionRequest condition : filter.getConditions()) {
           log.info(
               "Filter: {} {} {}",
               condition.getKey(),
               condition.getFilterType().toString(),
               condition.getValue());
-          conditionPredicate =
+
+          Predicate predicate =
               condition
                   .getFilterType()
-                  .build(
-                      root,
-                      cb,
-                      filter,
-                      conditionPredicate,
-                      condition,
-                      searchExpressionType,
-                      searchRoleType);
-          if (conditionPredicate == null) {
+                  .build(root, cb, condition, searchExpressionType, searchRoleType);
+
+          if (predicate == null) {
             throw new CustomServiceException(ErrorType.FILTER_TYPE_NOT_SUITABLE_ERROR);
           }
+
+          conditionPredicates.add(
+              PredicateCondition.builder()
+                  .operator(condition.getOperator())
+                  .predicate(predicate)
+                  .build());
         }
-        filterPredicates.add(conditionPredicate);
+        Predicate predicate = conditionPredicates.get(0).getPredicate();
+        for (int i = 1; i < conditionPredicates.size(); i++) {
+          predicate =
+              Operator.OR.equals(conditionPredicates.get(i - 1).getOperator())
+                  ? cb.or(predicate, conditionPredicates.get(i).getPredicate())
+                  : cb.and(predicate, conditionPredicates.get(i).getPredicate());
+        }
+        filterPredicates.add(
+            PredicateCondition.builder()
+                .operator(filter.getOperator())
+                .predicate(predicate)
+                .build());
       }
 
       Predicate predicate = null;
       if (!CollectionUtils.isEmpty(filterPredicates)) {
-        predicate = filterPredicates.get(0);
-        for (int i = 1; i < filterPredicates.size(); i++) {
+        predicate = filterPredicates.get(filterPredicates.size() - 1).getPredicate();
+        for (int i = filterPredicates.size() - 2; i >= 0; i--) {
 
           predicate =
-              Operator.OR.equals(request.getOperator())
-                  ? cb.or(filterPredicates.get(i), predicate)
-                  : cb.and(filterPredicates.get(i), predicate);
+              Operator.OR.equals(filterPredicates.get(i).getOperator())
+                  ? cb.or(filterPredicates.get(i).getPredicate(), predicate)
+                  : cb.and(filterPredicates.get(i).getPredicate(), predicate);
         }
       }
 

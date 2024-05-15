@@ -1,4 +1,4 @@
-package com.specification.demo.util;
+package com.specification.demo.utils;
 
 import com.specification.demo.exception.CustomServiceException;
 import com.specification.demo.payload.response.ErrorType;
