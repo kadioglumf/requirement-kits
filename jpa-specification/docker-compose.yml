@@ -1,0 +1,79 @@
+volumes:
+  pg_data:
+
+services:
+  db:
+    image: postgres:alpine
+    restart: unless-stopped
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./.dev/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+    ports:
+      - "5445:5432"
+
+  seed:
+    image: barrypiccinni/psql-curl
+    restart: 'no'
+    volumes:
+      - ./.dev/seed.sql:/tmp/seed.sql
+      - ./.dev/seed.sh:/tmp/seed.sh
+    entrypoint: bash -c 'chmod +x /tmp/seed.sh && ./tmp/seed.sh'
+    environment:
+      PGPASSWORD: 12345678
+    depends_on:
+      jpa-specification-svc:
+        condition: service_healthy
+
+  jpa-specification-svc:
+    restart: unless-stopped
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/jpa-specification/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    ports:
+      - "8083:8080"
+      - "5083:5005"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_NAME=jpa-specification-db
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=12345678
+      - JDK_JAVA_OPTIONS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    build:
+      context: .
+      dockerfile: .dev/Dockerfile
+
+  websocket-service-svc:
+    restart: unless-stopped
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/websocket/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    environment:
+      - JDK_JAVA_OPTIONS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    depends_on:
+      jpa-specification-svc:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+      - "5081:5005"
+    build:
+      context: https://kadioglumf:{MY_ACCESS_TOKEN}@github.com/kadioglumf/web-socket.git#test-docker
+      dockerfile: .dev/Dockerfile
