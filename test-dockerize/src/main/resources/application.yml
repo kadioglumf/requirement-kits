@@ -1,0 +1,6 @@
+server:
+  servlet:
+    context-path: /test-dockerize
+spring:
+  application:
+    name: test-dockerize

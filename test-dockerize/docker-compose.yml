@@ -12,7 +12,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345678
@@ -32,6 +32,30 @@ services:
     depends_on:
       jpa-specification-svc:
         condition: service_healthy
+      test-dockerize-svc:
+        condition: service_healthy
+      websocket-service-svc:
+        condition: service_healthy
+
+  test-dockerize-svc:
+    restart: unless-stopped
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/test-dockerize/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    ports:
+      - "8084:8080"
+      - "5084:5005"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - JDK_JAVA_OPTIONS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    build:
+      context: .
+      dockerfile: .dev/Dockerfile
 
   jpa-specification-svc:
     restart: unless-stopped
@@ -39,7 +63,7 @@ services:
       test: "curl --fail --silent localhost:8080/jpa-specification/actuator/health | grep UP || exit 1"
       interval: 20s
       timeout: 5s
-      retries: 20
+      retries: 5
       start_period: 40s
     ports:
       - "8083:8080"
@@ -55,7 +79,7 @@ services:
       - DB_PASSWORD=12345678
       - JDK_JAVA_OPTIONS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     build:
-      context: .
+      context: ../jpa-specification
       dockerfile: .dev/Dockerfile
 
   websocket-service-svc:
@@ -64,16 +88,16 @@ services:
       test: "curl --fail --silent localhost:8080/websocket/actuator/health | grep UP || exit 1"
       interval: 20s
       timeout: 5s
-      retries: 20
+      retries: 5
       start_period: 40s
     environment:
       - JDK_JAVA_OPTIONS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    depends_on:
-      jpa-specification-svc:
-        condition: service_healthy
+#    depends_on:
+#      jpa-specification-svc:
+#        condition: service_healthy
     ports:
       - "8081:8080"
       - "5081:5005"
     build:
-      context: https://kadioglumf:{MY_ACCESS_TOKEN}@github.com/kadioglumf/web-socket.git#test-docker
+      context: https://kadioglumf:{MY_ACCESS_TOKEN}@github.com/kadioglumf/web-socket.git#main
       dockerfile: .dev/Dockerfile
